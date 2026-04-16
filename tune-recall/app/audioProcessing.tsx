@@ -8,10 +8,10 @@ export function setupAudioProcessing(stream: MediaStream): {
   const analyser = audioContext.createAnalyser();
   const biquadFilter = audioContext.createBiquadFilter();
 
-  // Number of audio samples
+  // Number of audio samples (higher means more latency so I think 2048 is a good median)
   analyser.fftSize = 2048;
 
-  // Lowest standard guitar frequency is E2 at 82.41 Hz
+  // Lowest standard guitar frequency is E2 at 82.41 Hz (gave a ~15 buffer)
   biquadFilter.type = 'highpass';
   biquadFilter.frequency.value = 70;
   biquadFilter.Q.value = 0.7;
