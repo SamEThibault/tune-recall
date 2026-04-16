@@ -6,18 +6,25 @@ export function setupAudioProcessing(stream: MediaStream): {
 
   const source = audioContext.createMediaStreamSource(stream);
   const analyser = audioContext.createAnalyser();
-  const biquadFilter = audioContext.createBiquadFilter();
+  const biquadHighpassFilter = audioContext.createBiquadFilter();
+  const biquadLowpassFilter = audioContext.createBiquadFilter();
+
 
   // Number of audio samples
   analyser.fftSize = 2048;
 
   // Lowest standard guitar frequency is E2 at 82.41 Hz
-  biquadFilter.type = 'highpass';
-  biquadFilter.frequency.value = 70;
-  biquadFilter.Q.value = 0.7;
+  biquadHighpassFilter.type = 'highpass';
+  biquadHighpassFilter.frequency.value = 70;
+  biquadHighpassFilter.Q.value = 0.7;
 
-  source.connect(biquadFilter);
-  biquadFilter.connect(analyser);
+  biquadLowpassFilter.type = 'lowpass';
+  biquadLowpassFilter.frequency.value = 2000;
+  biquadLowpassFilter.Q.value = 0.7;
+
+  source.connect(biquadHighpassFilter);
+  biquadHighpassFilter.connect(biquadLowpassFilter);
+  biquadLowpassFilter.connect(analyser);
 
   return { audioContext, analyser };
 }
