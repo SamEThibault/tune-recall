@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { setupAudioProcessing } from './audioProcessing';
 
 interface Clip {
   id: number;
@@ -41,7 +42,12 @@ export default function AudioRecorder() {
         const mediaRecorder = new MediaRecorder(stream);
         mediaRecorderRef.current = mediaRecorder;
 
-        visualize(stream, canvas);
+        // Grabs the audio context and analyser from the other file now (audioProcessing.tsx)
+        const { audioContext, analyser } = setupAudioProcessing(stream);
+        audioCtxRef.current = audioContext;
+
+        // Calls the visualizer (split the function call out to make it easier to read)
+        visualize(analyser, canvas);
 
         mediaRecorder.ondataavailable = (e: BlobEvent) => {
           chunksRef.current.push(e.data);
@@ -67,20 +73,10 @@ export default function AudioRecorder() {
     };
   }, []);
 
-  function visualize(stream: MediaStream, canvas: HTMLCanvasElement): void {
-    if (!audioCtxRef.current) {
-      audioCtxRef.current = new AudioContext();
-    }
-
-    const audioCtx = audioCtxRef.current;
+  function visualize(analyser: AnalyserNode, canvas: HTMLCanvasElement): void {
     const canvasCtx = canvas.getContext('2d')!;
-    const source = audioCtx.createMediaStreamSource(stream);
-    const analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 2048; // sample size
-
     const bufferLength = analyser.fftSize;
     const dataArray = new Uint8Array(bufferLength);
-    source.connect(analyser);
 
     function draw(): void {
       requestAnimationFrame(draw);
