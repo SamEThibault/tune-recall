@@ -3,13 +3,25 @@
 import { useEffect, useRef, useState } from 'react';
 import { setupAudioProcessing } from './audioProcessing';
 
-interface Clip {
+export interface Clip {
   id: number;
   name: string;
   url: string;
 }
 
-export default function AudioRecorder() {
+// Return this instead of having the ui in here
+export interface UseAudioRecorderReturn {
+  canvasRef: React.RefObject<HTMLCanvasElement>;
+  mainSectionRef: React.RefObject<HTMLElement>;
+  isRecording: boolean;
+  clips: Clip[];
+  handleRecord: () => void;
+  handleStop: () => void;
+  handleDelete: (id: number) => void;
+  handleRename: (id: number) => void;
+}
+
+export function useAudioRecorder(): UseAudioRecorderReturn {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mainSectionRef = useRef<HTMLElement>(null);
 
@@ -131,38 +143,14 @@ export default function AudioRecorder() {
     }
   }
 
-  return (
-    <div>
-      <section className="main-controls" ref={mainSectionRef}>
-        <canvas className="visualizer" ref={canvasRef} height={60} />
-        <div>
-          <button
-            className="record"
-            onClick={handleRecord}
-            disabled={isRecording}
-            style={{ background: isRecording ? 'red' : '' }}
-          >
-            Record
-          </button>
-          <button className="stop" onClick={handleStop} disabled={!isRecording}>
-            Stop
-          </button>
-        </div>
-      </section>
-
-      <section className="sound-clips">
-        {clips.map((clip) => (
-          <article key={clip.id} className="clip">
-            <audio src={clip.url} controls />
-            <p onClick={() => handleRename(clip.id)} style={{ cursor: 'pointer' }}>
-              {clip.name}
-            </p>
-            <button className="delete" onClick={() => handleDelete(clip.id)}>
-              Delete
-            </button>
-          </article>
-        ))}
-      </section>
-    </div>
-  );
+  return {
+    canvasRef,
+    mainSectionRef, //idk why these are erroring but they work fine
+    isRecording,
+    clips,
+    handleRecord,
+    handleStop,
+    handleDelete,
+    handleRename,
+  };
 }
