@@ -1,25 +1,8 @@
-'use client';
+'use client'; //Changed to .ts as it wasnt using jsx or react componenets
 
 import { useEffect, useRef, useState } from 'react';
-import { setupAudioProcessing } from './audioProcessing';
-
-export interface Clip {
-  id: number;
-  name: string;
-  url: string;
-}
-
-// Return this instead of having the ui in here
-export interface UseAudioRecorderReturn {
-  canvasRef: React.RefObject<HTMLCanvasElement>;
-  mainSectionRef: React.RefObject<HTMLElement>;
-  isRecording: boolean;
-  clips: Clip[];
-  handleRecord: () => void;
-  handleStop: () => void;
-  handleDelete: (id: number) => void;
-  handleRename: (id: number) => void;
-}
+import { setupAudioProcessing } from '../lib/audio/audioProcessing';
+import { Clip, UseAudioRecorderReturn } from '../lib/audio/types';
 
 export function useAudioRecorder(): UseAudioRecorderReturn {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -54,7 +37,7 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
         const mediaRecorder = new MediaRecorder(stream);
         mediaRecorderRef.current = mediaRecorder;
 
-        // Grabs the audio context and analyser from the other file now (audioProcessing.tsx)
+        // Grabs the audio context and analyser from the other file now (audioProcessing.ts)
         const { audioContext, analyser } = setupAudioProcessing(stream);
         audioCtxRef.current = audioContext;
 
