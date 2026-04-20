@@ -1,4 +1,4 @@
-'use client';
+'use client'; //Changed to .ts as it wasnt using jsx or react componenets
 
 import { useEffect, useRef, useState } from 'react';
 import { setupAudioProcessing } from '../lib/audio/audioProcessing';
