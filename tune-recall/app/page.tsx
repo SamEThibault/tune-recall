@@ -1,6 +1,6 @@
 'use client';
 
-import { useAudioRecorder } from './AudioRecorder';
+import { useAudioRecorder } from './hooks/useAudioRecorder';
 
 export default function Page() {
   const { canvasRef, mainSectionRef, isRecording, clips, handleRecord, handleStop, handleDelete, handleRename } =
