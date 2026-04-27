@@ -3,7 +3,7 @@
 import { useAudioRecorder } from './hooks/useAudioRecorder';
 
 export default function Page() {
-  const { canvasRef, mainSectionRef, isRecording, clips, handleRecord, handleStop, handleDelete, handleRename } =
+  const { canvasRef, mainSectionRef, isRecording, clips, handleRecord, handleStop, handleDelete, handleRename, note, toggleDetection, isDetecting, frequency } =
     useAudioRecorder();
 
   return (
@@ -11,6 +11,9 @@ export default function Page() {
       <section className="main-controls" ref={mainSectionRef}>
         <canvas className="visualizer" ref={canvasRef} height={60} />
         <div>
+          <button className="detect" onClick={toggleDetection} disabled={false}>
+              {isDetecting ? 'Stop Detecting' : 'Detect'}
+          </button>
           <button className="record" onClick={handleRecord} disabled={isRecording}>
             {isRecording ? 'Recording' : 'Record'}
           </button>
@@ -19,6 +22,12 @@ export default function Page() {
           </button>
         </div>
       </section>
+      <p>
+        {note}
+      </p>
+      <p>
+        {frequency}
+      </p>
 
       <section className="sound-clips">
         {clips.length === 0 ? (
