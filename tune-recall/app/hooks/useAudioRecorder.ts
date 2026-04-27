@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { setupAudioProcessing } from '../lib/audio/audioProcessing';
 import { Clip, UseAudioRecorderReturn } from '../lib/audio/types';
+import { find_closest_note } from '../lib/audio/notes';
+import { detectPitch } from '../lib/audio/detectPitch';
 
 export function useAudioRecorder(): UseAudioRecorderReturn {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -14,6 +16,18 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const audioCtxRef = useRef<AudioContext | null>(null);
+
+  const [note, setNote]=useState<string>("")
+  const [frequency, setFrequency]=useState<number>(0)
+
+  const [isDetecting, setIsDetecting]=useState<boolean>(false)
+  const isDetectingRef = useRef<boolean>(false) //draw() captures isDetecting at creation so had to add this
+//ref is a container that persists across runders, always holds current value
+
+  // Update the ref whenever isDetecting changes
+  useEffect(() => {
+    isDetectingRef.current = isDetecting
+  }, [isDetecting])
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -42,7 +56,7 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
         audioCtxRef.current = audioContext;
 
         // Calls the visualizer (split the function call out to make it easier to read)
-        visualize(analyser, canvas);
+        visualize(analyser, audioContext, canvas);
 
         mediaRecorder.ondataavailable = (e: BlobEvent) => {
           chunksRef.current.push(e.data);
@@ -68,7 +82,7 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
     };
   }, []);
 
-  function visualize(analyser: AnalyserNode, canvas: HTMLCanvasElement): void {
+  function visualize(analyser: AnalyserNode, audioCtxRef: AudioContext, canvas: HTMLCanvasElement): void {
     const canvasCtx = canvas.getContext('2d')!;
     const bufferLength = analyser.fftSize;
     const dataArray = new Uint8Array(bufferLength);
@@ -89,6 +103,7 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
       const sliceWidth = W / bufferLength;
       let x = 0;
 
+      //Length is 2048 (based on the audioProcessing file variable)
       for (let i = 0; i < bufferLength; i++) {
         const v = dataArray[i] / 128.0;
         const y = (v * H) / 2;
@@ -98,9 +113,21 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
 
       canvasCtx.lineTo(W, H / 2);
       canvasCtx.stroke();
+
+      if (isDetectingRef.current){
+        const detectedFreq=detectPitch(dataArray,audioCtxRef.sampleRate)
+        const note=find_closest_note(detectedFreq)
+        setFrequency(detectedFreq)
+        setNote(note) 
+      }
+          
     }
 
     draw();
+  }
+
+  function toggleDetection(): void {
+    setIsDetecting(prev=>!prev)
   }
 
   function handleRecord(): void {
@@ -135,5 +162,9 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
     handleStop,
     handleDelete,
     handleRename,
+    note,
+    frequency,
+    toggleDetection,
+    isDetecting,
   };
 }
